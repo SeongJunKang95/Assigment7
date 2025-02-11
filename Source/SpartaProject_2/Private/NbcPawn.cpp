@@ -136,7 +136,23 @@ void ANbcPawn::Tick(float DeltaTime)
         // 이동 속도 설정
         float MoveSpeed = 500.0f;
         FVector DeltaLocation = MoveDirection.GetSafeNormal() * MoveSpeed * DeltaTime;
-        AddActorLocalOffset(DeltaLocation); // 실제 이동 적용, sweep 충돌문제 다시 확인해보기 !
+
+        FHitResult HitResult; // FHitResult 를 활용하면 충돌 정보를 확인하고, 특정 조건에서는 계속 이동할 수 있도록 조정 가능!
+       AddActorWorldOffset(DeltaLocation, true, &HitResult); // 실제 이동 적용, sweep 충돌문제 다시 확인해보기 !
+        //  AddActorLocalOffset(FVector(MoveInput.X, MoveInput.Y, 0.f));
+
+
+       if (HitResult.bBlockingHit) // 만약 충돌이 발생했다면
+       {
+           AActor* HitActor = HitResult.GetActor();
+
+           if (HitActor && HitActor->ActorHasTag(TEXT("PassThrough")))
+           {
+               // 특정 태그("PassThrough")를 가진 액터는 무시하고 계속 이동
+               AddActorLocalOffset(DeltaLocation, false);
+           }
+       }
+        
     }
 
     // 좌/우 회전 처리
